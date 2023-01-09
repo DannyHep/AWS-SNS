@@ -1,0 +1,54 @@
+const express = require("express");
+const router = express.Router();
+const AWS = require("aws-sdk");
+require("dotenv").config();
+
+const CONFIG = {
+  accessKeyId: process.env.SNS_USER_ACCESS_KEY,
+  secretAccessKey: process.env.SNS_SECRET_ACCESS_KEY,
+  region: process.env.SNS_REGION,
+};
+
+AWS.config.update(CONFIG);
+const sns = new AWS.SNS();
+
+router.get("/sendTextToMobile", async (req, res) => {
+  const contactNum = "+447525063324";
+  let params = {
+    PhoneNumber: contactNum,
+    Message: "Testing Testing 123",
+    MessageAttributes: {
+      "AWS.SNS.SMS.SMSType": {
+        DataType: "String",
+        StringValue: "Transactional",
+      },
+    },
+  };
+  sns.publish(params, (err, data) => {
+    if (err) {
+      console.log(err);
+      es.status(404).send(err);
+    } else {
+      console.log(data);
+      res.status(200).send(data);
+    }
+  });
+});
+
+router.get("sentTextToTopic", async (req, res) => {
+  let params = {
+    Message: "Testing sending to Topic Group",
+    TopicArn: "arn:aws:sns:eu-west-2:567036567457:SNSTest",
+  };
+  sns.publish(params, (err, data) => {
+    if (err) {
+      console.log(err);
+      es.status(404).send(err);
+    } else {
+      console.log(data);
+      res.status(200).send(data);
+    }
+  });
+});
+
+module.exports = { router, sns };
